@@ -1,0 +1,283 @@
+/* app css stylesheet */
+body {
+    color: #66615b;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-family: Montserrat, Helvetica, Arial, sans-serif;
+    font-weight: 300;
+}
+
+a {
+    min-height: 40px;
+    min-width: 40px;
+    color: #969696;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #7b7b7b;
+}
+
+img {
+    width: 100%;
+}
+
+header {
+    margin-bottom: 40px;
+    background-color: #424242!important;
+}
+
+footer {
+    margin-top: 20px;
+    background-color: #424242!important;
+}
+
+input[type="text"]:focus {
+    outline: none;
+}
+
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+    display: none !important;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.nav-bar-top {
+
+}
+
+.nav-bar-logo {
+    color: #eeeeee;
+    padding-top: 0.5rem;
+    padding-bottom: .3125rem;
+    margin-right: 1rem;
+    font-size: 1.25rem;
+    line-height: inherit;
+    white-space: nowrap;
+}
+
+.nav-bar-logo:hover {
+    color: #bebebe;
+}
+
+.upper {
+    text-transform: uppercase;
+}
+
+.tumbl-image {
+    color: #fff;
+    text-shadow: 1px 1px 2px black, 0 0 12px #3a3c3a;
+    font-weight: 700;
+    padding: 10px;
+    width: 100%;
+    height: 100px;
+    display: block;
+    background-position: 50% 50% !important;
+    background-size: cover !important;
+}
+
+.empty-input {
+    border: 1px solid white;
+    width: 49.7%;
+    margin-bottom: 20px;
+}
+
+.img-preview {
+    width: 200px;
+    max-height: 200px;
+}
+
+.red-link {
+    color: red;
+}
+
+.red-link:hover {
+    color: #a60000;
+}
+
+.mail-to {
+    float: right;
+    cursor: pointer;
+}
+
+.top-header {
+    display: block;
+    min-height: 50px;
+    margin-bottom: 40px;
+}
+
+.icon-top {
+    padding: 13px 15px !important;
+}
+
+.top-links {
+    color: white !important;
+}
+
+.soc-link {
+    font-size: 22px;
+    padding: 12px;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #e3e3e3;
+    background-color: #e3e3e3;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.soc-link:hover {
+    border: 1px solid #dcdcdc;
+    background-color: white;
+}
+
+.top-links:hover {
+    color: #bcbcbc !important;
+}
+
+.logo-link {
+    color: white !important;
+}
+
+.bg-gray {
+    background-color: rgb(66, 66, 66);
+}
+
+.bg-image-cover {
+    height: 200px;
+    min-height: 0;
+}
+
+.fix-input {
+    padding-bottom: 26px !important;
+}
+
+.footer-box {
+    margin-top: 20px;
+}
+
+.close {
+    cursor: pointer;
+}
+
+.hide {
+    display: none;
+}
+
+.img-wrap {
+    width: 100%;
+}
+
+.car-thumbnail {
+    padding: 3px;
+}
+
+.img-thumbnails {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.inactive-img {
+    border: 1px solid #fff;
+    border-radius: 4px;
+}
+
+.active-img {
+    border: 1px solid #00b0ff;
+    border-radius: 4px;
+}
+
+.demo-layout-transparent {
+    background: url('/img/bg.jpg') center / cover;
+}
+
+.demo-layout-transparent .mdl-layout__header,
+.demo-layout-transparent .mdl-layout__drawer-button {
+    /* This background is dark, so we set text to white. Use 87% black instead if
+       your background is light. */
+    color: white;
+}
+
+.demo-layout-waterfall .mdl-layout__header-row .mdl-navigation__link:last-of-type {
+    padding-right: 0;
+}
+
+.mdl-layout__drawer-button {
+    padding-top: 10px;
+}
+
+.label-color {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+#googlebutton {
+    width: 120px;
+    height: 36px;
+    color: #FFFFFF;
+    border-bottom: solid 2px #02336d;
+    background: #225FCD;
+
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+#googlebutton:hover,
+#googlebutton:focus {
+    border-bottom: solid 2px #04538d;
+    background: #427FED;
+    cursor: pointer;
+}
+
+#googlebutton .google-icon {
+    margin: 6px 0 0 6px;
+    float: left;
+    fill: #FFFFFF;
+}
+
+#googlebutton .sign-in-text {
+    text-align: center;
+    vertical-align: middle;
+    margin: 3px 0 0 0;
+    float: left;
+    width: 90px;
+}
+
+.mdl-mega-footer__link-list > li > a {
+    color: #acacac;
+}
+
+.mdl-mega-footer__link-list > li > a:hover {
+    color: #c0c0c0;
+}
+
+.upload-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    cursor: pointer!important;
+}
+
+.user-image {
+    position: relative;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.user-image-container {
+    position: relative;
+    overflow: hidden;
+    width: 130px;
+    height: 130px;
+
+}

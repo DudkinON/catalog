@@ -1,0 +1,69 @@
+<header>
+  <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark nav-bar-top">
+      <a class="nav-bar-logo" href="/">CARCAT</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse"
+              data-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent"
+              aria-expanded="false"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#"
+               id="navbarDropdown" role="button"
+               data-toggle="dropdown"
+               aria-haspopup="true" aria-expanded="false">
+              <span class="upper">brands</span>
+            </a>
+            <div class="dropdown-menu"
+                 aria-labelledby="navbarDropdown">
+              {% for item in brands %}
+              <a class="dropdown-item" href="/brand/{{ item.id }}"
+                 ng-repeat="item in menu">{{ item.name }}</a>
+              {% endfor %}
+            </div>
+          </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable
+              mdl-textfield--floating-label mdl-textfield--align-right">
+            <label class="mdl-button mdl-js-button mdl-button--icon"
+                   for="waterfall-exp">
+              <i class="material-icons">search</i>
+            </label>
+            <div class="mdl-textfield__expandable-holder">
+              <input class="mdl-textfield__input" type="text" name="sample"
+                     id="waterfall-exp">
+            </div>
+          </div>
+        </form>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#">contacts</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">about</a>
+          </li>
+          <li class="nav-item" ng-show="user.info().size < 1">
+            <a class="nav-link icon-top" data-ng-href="/login">
+              <i class="fa fa-sign-in" aria-hidden="true"></i>
+            </a>
+          </li>
+          <li class="nav-item" ng-show="user.info().size > 0">
+            <a class="nav-link icon-top" data-ng-href="/profile">
+              <i class="fa fa-user" aria-hidden="true"></i>
+            </a>
+          </li>
+          <li class="nav-item" ng-show="user.info().size > 0">
+            <a class="nav-link icon-top" data-ng-href="/logout">
+              <i class="fa fa-sign-out" aria-hidden="true"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+</header>
