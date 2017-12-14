@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from functools import wraps
 from flask import Flask, jsonify, request, g, render_template as render, flash
 from flask import session, redirect
 from models import create_user, get_user_by_username, create_category
@@ -30,6 +31,24 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 brands = get_categories()
 csrf_token = get_unique_str(32)
+
+
+# TODO: Login required
+def login_required(f):
+    """
+    Checking the user is logged in
+
+    :param f:
+    :return:
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'uid' in session:
+            return f(*args, **kwargs)
+        else:
+            flash('You are not allowed to access there', 'error')
+            return redirect('/login', 302)
+    return decorated_function
 
 
 # TODO: Verification of password
@@ -83,9 +102,13 @@ def sign_in():
 
 
 @app.route('/profile')
+@login_required
 def user_profile():
-    if not session.get('uid'):
-        return redirect('/login', 302)
+    """
+    Profile page
+
+    :return:
+    """
     user = get_user_by_id(session['uid'])
     title = '%s - profile' % user.get_full_name
     cars = [item.serialize for item in get_items_by_user(session['uid'])]
@@ -148,15 +171,13 @@ def edit_user_profile():
 
 
 @app.route('/profile/delete', methods=['GET', 'POST'])
+@login_required
 def remove_profile():
     """
     Remove user profile
+
     :return mix:
     """
-
-    # check if user is logged in
-    if not session.get('uid'):
-        return redirect('/login', 302)
 
     # get uid
     uid = int(session['uid'])
@@ -230,16 +251,13 @@ def show_car(item_id):
 
 
 @app.route('/new/car', methods=['GET', 'POST'])
+@login_required
 def new_car():
     """
     Create a new car
 
     :return mix:
     """
-
-    # check if user is logged in
-    if not session.get('uid'):
-        return redirect('/login', 302)
 
     # POST request
     if request.method == 'POST' and request.form['csrf_token'] == csrf_token:
@@ -301,6 +319,7 @@ def new_car():
 
 
 @app.route('/edit/car/<int:item_id>', methods=['GET', 'POST'])
+@login_required
 def edit_car(item_id):
     """
     Edit item
@@ -308,10 +327,6 @@ def edit_car(item_id):
     :param item_id:
     :return mix:
     """
-
-    # Check user login
-    if not session.get('uid'):
-        return redirect('/login', 302)
 
     # get user
     user = get_user_by_id(session['uid'])
@@ -357,6 +372,7 @@ def edit_car(item_id):
 
 
 @app.route('/delete/car/<int:item_id>', methods=['GET', 'POST'])
+@login_required
 def delete_car(item_id):
     """
     Remove car and all images
@@ -364,10 +380,6 @@ def delete_car(item_id):
     :param item_id:
     :return:
     """
-
-    # Check user login
-    if not session.get('uid'):
-        return redirect('/login', 302)
 
     # Get car
     car = get_item_by_id(item_id)
