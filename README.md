@@ -12,17 +12,17 @@ main the users functionality to sign in with oauth providers, and manage content
 git clone https://github.com/DudkinON/catalog
 ```
 ```
+cd catalog
+```
+```
 pip install -r requirements.txt
-```
-```
-cd carcat/items_catalog
 ```
 
 ```
 python main.py 
 ```
 
-> After, it will run flask api and you'll see text like this:
+> After, it will run you'll see text like this:
 
 ```
  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
