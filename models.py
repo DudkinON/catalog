@@ -95,7 +95,7 @@ class User(Base):
     @property
     def serialize(self):
         """
-        Return user data
+        Return user serialize data
 
         :return dict:
         """
@@ -120,7 +120,7 @@ class Image(Base):
     @property
     def serialize(self):
         """
-        Return user data
+        Return image data
 
         :return dict:
         """
@@ -139,7 +139,7 @@ class Category(Base):
     @property
     def serialize(self):
         """
-        Return user data
+        Return category
 
         :return dict:
         """
@@ -189,7 +189,7 @@ class Catalog(Base):
     @property
     def serialize(self):
         """
-        Return user data
+        Return item serialize (dict)
 
         :return dict:
         """

@@ -149,6 +149,10 @@ def edit_user_profile():
 
 @app.route('/profile/delete', methods=['GET', 'POST'])
 def remove_profile():
+    """
+    Remove user profile
+    :return mix:
+    """
 
     # check if user is logged in
     if not session.get('uid'):
@@ -216,6 +220,11 @@ def cars_by_brand(brand_id):
 
 @app.route('/car/<int:item_id>')
 def show_car(item_id):
+    """
+    Show car page
+    :param item_id: int
+    :return:
+    """
     car = get_item_by_id(item_id)
     return render('catalog/car.html', brands=brands, car=car.serialize)
 
@@ -285,6 +294,7 @@ def new_car():
         # Save data
         car = create_item(title, description, model, brand, author, price)
 
+        # redirect user
         return redirect('/edit/car/%s' % car.id)
 
     return render('catalog/new_car.html', brands=brands, csrf=csrf_token)
@@ -348,6 +358,12 @@ def edit_car(item_id):
 
 @app.route('/delete/car/<int:item_id>', methods=['GET', 'POST'])
 def delete_car(item_id):
+    """
+    Remove car and all images
+
+    :param item_id:
+    :return:
+    """
 
     # Check user login
     if not session.get('uid'):
@@ -395,9 +411,15 @@ def delete_car(item_id):
 # TODO: Sign in with provider
 @app.route('/api/oauth/<provider>', methods=['POST'])
 def oauth(provider):
+    """
+    Authentication with providers
+
+    :param provider:
+    :return:
+    """
+
     # STEP 1 - Parse the auth code
     code = request.data
-    print provider
 
     if provider == 'google':
         # STEP 2 - Exchange for a token
@@ -415,11 +437,15 @@ def oauth(provider):
 
         # Check that the access token is valid.
         access_token = credentials.access_token
-        url = (
-            'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' %
-            access_token)
+
+        # prepare url
+        turl = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
+        url = (turl % access_token)
+
+        # get result
         h = Http()
         result = loads(h.request(url, 'GET')[1])
+
         # If there was an error in the access token info, abort.
         if result.get('error') is not None:
             response = make_response(dumps(result.get('error')), 500)
@@ -429,9 +455,9 @@ def oauth(provider):
         h = Http()
         userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
         params = {'access_token': credentials.access_token, 'alt': 'json'}
-        answer = r_get(userinfo_url, params=params)
+        google_response = r_get(userinfo_url, params=params)
 
-        data = answer.json()
+        data = google_response.json()
 
         # see if user exists, if it doesn't make a new one
         user = get_user_by_email(email=data['email'])
@@ -445,33 +471,54 @@ def oauth(provider):
 
         g.user = user
 
+        # create session
         session['uid'] = user.id
         session['provider'] = 'google'
-        # Send back token to the client
-        return redirect('profile', code=302)
+
+        return jsonify({'message': 'Success'}), 200
 
     elif provider == 'facebook':
 
+        # get data
         data = request.json.get('data')
+
+        # get access token
         access_token = data['access_token']
+
+        # prepare path to app facebook data
         fb_file = ''.join([BASE_DIR, '/facebook.json'])
+
+        # load data
         fb_data = loads(open(fb_file, 'r').read())['facebook']
+
+        # gat app data
         app_id = fb_data['app_id']
         app_secret = fb_data['app_secret']
+
+        # prepare query url for access token
         url = fb_data['access_token_url'] % (app_id, app_secret, access_token)
+
+        # get result
         h = Http()
         result = h.request(url, 'GET')[1]
 
         # Use token to get user info from API
-
         token = result.split(',')[0].split(':')[1].replace('"', '')
+
+        # prepare url for get user info
         url = fb_data['user_info_url'] % token
 
+        # get result
         h = Http()
         result = h.request(url, 'GET')[1]
+
+        # load data
         data = loads(result)
+
+        # get first name and last name
         name = findall(r'[a-zA-Z]+', data['name'])
 
+        # prepare dictionary for save
         user_data = dict()
         user_data['provider'] = 'facebook'
         user_data['username'] = ''.join(name)
@@ -481,15 +528,23 @@ def oauth(provider):
         user_data['facebook_id'] = data.get('id')
         user_data['access_token'] = token
 
+        # prepare url for get picture
         url = fb_data['picture_url'] % token
+
+        # get result
         h = Http()
         result = h.request(url, 'GET')[1]
+
+        # load data
         data = loads(result)
+
+        # add picture link to dictionary
         user_data['picture'] = data['data']['url']
 
-        # see if user exists
+        # get user info
         user_info = get_user_by_email(user_data['email'])
 
+        # check the user exist, if not create a new one
         if user_info is None:
             user_info = create_user(username=user_data['username'],
                                     password=get_unique_str(8),
@@ -497,20 +552,24 @@ def oauth(provider):
                                     last_name=user_data['last_name'],
                                     email=user_data['email'],
                                     picture=user_data['picture'])
-
         g.user = user_info
+
+        # create session
         session['uid'] = user_info.id
         session['provider'] = 'facebook'
-        return redirect('/profile', code=302)
+        return jsonify({'message': 'Success'}), 200
 
     else:
-        title = 'Sign in'
-        flash('Unknown provider', category='error')
-        return render('/users/login.html', brands=brands, title=title)
+        return jsonify({'error': 'Unknown provider'})
 
 
 @app.route('/logout')
 def logout():
+    """
+    Logout user
+
+    :return:
+    """
     if session.get('uid') is not None:
         del session['uid']
     if session.get('provider') is not None:
@@ -833,8 +892,8 @@ def delete_user(uid):
     :param uid:
     :return string: JSON
     """
-    user_profile = get_user_by_id(uid)
-    if user_profile.id != g.user.id:
+    user_info = get_user_by_id(uid)
+    if user_info.id != g.user.id:
         return jsonify({'error': 'permission denied'}), 403
     else:
         remove_user(uid)
@@ -979,6 +1038,7 @@ def remove_item(item_id):
 def item_page(item_id):
     """
     Return item
+
     :param item_id:
     :return string: JSON
     """
@@ -987,6 +1047,6 @@ def item_page(item_id):
 
 
 if __name__ == '__main__':
-    app.secret_key = 'super_secret_key'
+    app.secret_key = get_unique_str(32)
     app.debug = True
     app.run(host='0.0.0.0')
