@@ -1,0 +1,24 @@
+{% extends 'default.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+{% for car in cars %}
+  <div class="col-sm-6 col-lg-4">
+    <span class="tumbl-image" 
+          ng-controller="DescriptionController as DescriptionController"
+          data-ng-click="DescriptionController.showDescription()"
+          image-bg="{% if car.images %}{{ car.images[0].url }}{% else %}/static/img/no-photo.png{% endif %}">
+        <div class="hide description">{{ car.description }}</div>
+    </span>
+    <div class="pt-2 text-center">{{ car.title }}</div>
+    <div class="pt-2" ng-controller="EmailController as email">
+      <span data-ng-click="email.sendEmail('{{ car.author.email }}')" class="mail-to">
+        <i class="fa fa-envelope-o" aria-hidden="true"></i></span>
+      <span>{{ car.author.first_name }} {{ car.author.last_name }}</span>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

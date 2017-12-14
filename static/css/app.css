@@ -101,6 +101,14 @@ input[type="text"]:focus {
     color: #a60000;
 }
 
+.green-link {
+    color: #39c604;
+}
+
+.green-link:hover {
+    color: #32ae03;
+}
+
 .mail-to {
     float: right;
     cursor: pointer;
@@ -155,7 +163,8 @@ input[type="text"]:focus {
 }
 
 .fix-input {
-    padding-bottom: 26px !important;
+    border-bottom: none !important;
+    padding: 6px 0;
 }
 
 .footer-box {
@@ -191,10 +200,6 @@ input[type="text"]:focus {
 .active-img {
     border: 1px solid #00b0ff;
     border-radius: 4px;
-}
-
-.demo-layout-transparent {
-    background: url('/img/bg.jpg') center / cover;
 }
 
 .demo-layout-transparent .mdl-layout__header,

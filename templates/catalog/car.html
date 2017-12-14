@@ -1,0 +1,70 @@
+{% extends 'default.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-8">
+    <div class="car-images-container"  ng-controller="ImageController as ImageController">
+      <input type="hidden" id="car-id" value="{{ car.id }}">
+        <div ng-show="!ImageController.car.images.length" class="ng-scope">
+          <div class="img-wrap">
+            <img src="/static/img/no-photo.png" id="main-image">
+          </div>
+        </div>
+        <div ng-show="ImageController.car.images.length" class="ng-scope">
+          <div class="img-wrap">
+            <img data-ng-src="{a ImageController.car.images[0].url a}" id="main-image">
+          </div>
+          <div class="img-thumbnails row">
+            <div class="col-2 car-thumbnail"
+                 ng-repeat="image in ImageController.car.images">
+              <img data-ng-src="{a image.url a}" alt="{a image.id a}"
+                   data-ng-click="ImageController.chooseImg(image)"
+                   ng-if="ImageController.currentImg.url !== image.url"
+                   class="rounded border inactive-img pointer">
+              <img data-ng-src="{a image.url a}" alt="{a image.id a}"
+                   data-ng-click="ImageController.chooseImg(image)"
+                   ng-if="ImageController.currentImg.url === image.url"
+                   class="rounded border active-img pointer">
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+  <div class="col-lg-4">
+    <h1 class="h3 mb-5">{{ car.title }}</h1>
+    <table class="table table-sm">
+      <tbody>
+      <tr class="table-active">
+        <td>brand:</td>
+        <td>
+          <a href="/brand/{{ car.brand.id }}">
+            <strong>{{ car.brand.name }}</strong>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>model:</td>
+        <td><strong>{{ car.model }}</strong></td>
+      </tr>
+      <tr>
+        <td>price:</td>
+        <td><strong>${{ car.price }}</strong></td>
+      </tr>
+      </tbody>
+    </table>
+    <div class="mt-5">
+      <span>description</span>
+      <hr>
+      <em>{{ car.title }}</em>
+    </div>
+    <div class="pt-4" ng-controller="EmailController as email">
+      <span data-ng-click="email.sendEmail('{{ car.author.email }}')" class="mail-to h6">
+        <i class="fa fa-envelope-o" aria-hidden="true"></i>
+      </span>
+      <div class="h6">{{ car.author.first_name }} {{ car.author.last_name }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

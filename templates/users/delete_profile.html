@@ -1,0 +1,35 @@
+{% extends 'default.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+ <div class="col-12">{% include 'flash.html' %}</div>
+  <div class="col-md-5 mx-auto">
+    <div class="pt-5 pb-5">
+      <div class="h3 text-center">Remove profile</div>
+
+    </div>
+    <div class="pb-5 text-center">
+      <p>You going to remove your profile.</p>
+      <p>Are you sure?</p>
+    </div>
+    <div class="row mb-5">
+      <div class="col-6 text-center">
+        <a class="mdl-button mdl-js-button mdl-js-ripple-effect green-link"
+           href="{{ url_for('user_profile') }}" >cancel</a>
+      </div>
+      <div class="col-6 text-center">
+        <form action="{{ url_for('remove_profile') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button name="remove" value="true"
+                  class="mdl-button mdl-js-button mdl-js-ripple-effect red-link"
+          >remove</button>
+        </form>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+{% endblock %}

@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import Flask, jsonify, request, g, render_template as render
-from models import *
+from flask import Flask, jsonify, request, g, render_template as render, flash
+from flask import session, redirect
+from models import create_user, get_user_by_username, create_category
+from models import create_item, User, get_items_by_category, update_user_photo
+from models import get_categories, get_items, get_user_by_email, check_category
+from models import user_exist, update_user, remove_user, get_user_by_id
+from models import add_images, get_items_by_user, update_item, get_item_by_id
+from models import delete_item, email_exist, get_images_by_item_id
+from models import remove_images_by_item_id
 from data_control import email_is_valid, get_unique_str, get_path, allowed_file
 from settings import *
 from flask_httpauth import HTTPBasicAuth
@@ -13,12 +20,16 @@ from httplib2 import Http
 from flask import make_response
 from requests import get as r_get
 from json import dumps, loads
+from re import findall
 
 ALLOWED_EXTENSIONS = set(EXTENSIONS)
 auth = HTTPBasicAuth()
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+brands = get_categories()
+csrf_token = get_unique_str(32)
 
 
 # TODO: Verification of password
@@ -48,11 +59,345 @@ def verify_password(_login, password):
     return True
 
 
+@app.route('/')
+def home_page():
+    """
+    Main page
+
+    :return:
+    """
+    title = 'Home page'
+    cars = [item.serialize for item in get_items(9)]
+    return render('catalog/index.html', brands=brands, cars=cars, title=title)
+
+
+@app.route('/login')
+def sign_in():
+    """
+    Sign in page
+
+    :return:
+    """
+    title = 'Sign in'
+    return render('/users/login.html', brands=brands, title=title)
+
+
+@app.route('/profile')
+def user_profile():
+    if not session.get('uid'):
+        return redirect('/login', 302)
+    user = get_user_by_id(session['uid'])
+    title = '%s - profile' % user.get_full_name
+    cars = [item.serialize for item in get_items_by_user(session['uid'])]
+    print cars
+    return render('/users/profile.html',
+                  brands=brands,
+                  title=title,
+                  cars=cars,
+                  user=user.serialize)
+
+
+@app.route('/profile/edit', methods=['GET', 'POST'])
+def edit_user_profile():
+    """
+    Edit user profile
+
+    :return mix:
+    """
+
+    # check if user is logged in
+    if not session.get('uid'):
+        return redirect('/login', 302)
+
+    # get user
+    user = get_user_by_id(session['uid'])
+
+    # POST request
+    if request.method == 'POST' and request.form['csrf_token'] == csrf_token:
+
+        # cleaning data
+        try:
+            _user = dict()
+            _user['uid'] = int(session['uid'])
+            _user['username'] = clean(request.form['username'])
+            _user['first_name'] = clean(request.form['first_name'])
+            _user['last_name'] = clean(request.form['last_name'])
+            _user['email'] = clean(request.form['email'])
+        except TypeError:
+            flash('Fields can\'t be empty', 'error')
+            return redirect('/profile', 302)
+
+        if email_is_valid(_user['email']):
+            user = update_user(_user)
+            full_name = ' '.join([user.first_name, user.last_name])
+            message = 'Dear %s, your information was updating' % full_name
+            flash(message, 'success')
+            return redirect('/profile', 302)
+        else:
+            flash('Invalid email', 'error')
+            return render('users/edit_profile.html',
+                          brands=brands,
+                          user=user,
+                          csrf_token=csrf_token)
+
+    return render('users/edit_profile.html',
+                  brands=brands,
+                  token=user.generate_auth_token(3600),
+                  user=user,
+                  csrf_token=csrf_token)
+
+
+@app.route('/profile/delete', methods=['GET', 'POST'])
+def remove_profile():
+
+    # check if user is logged in
+    if not session.get('uid'):
+        return redirect('/login', 302)
+
+    # get uid
+    uid = int(session['uid'])
+
+    # get user items
+    items = [item.serialize for item in get_items_by_user(uid)]
+
+    # if the user have any items create message
+    if len(items) > 0:
+        flash('First remove your cars', 'error')
+
+    # get user
+    user = get_user_by_id(uid)
+
+    # get user full name
+    name = ' '.join([user.first_name, user.last_name])
+
+    if request.method == 'POST' and request.form['csrf_token'] == csrf_token:
+
+        if len(items) > 0:
+            return render('users/delete_profile.html',
+                          brands=brands, csrf_token=csrf_token)
+
+        # get absolute path to image
+        path = ''.join([BASE_DIR, user.picture])
+
+        # if file exist remove the image file
+        if os.path.isfile(path):
+            os.unlink(path)
+
+        # remove user data from database
+        remove_user(uid)
+
+        # remove session
+        del session['uid']
+
+        if 'provider' in session:
+            del session['provider']
+
+        # create success message
+        flash('Profile "%s" was removed' % name, 'success')
+
+        # redirect user to home page
+        return redirect('/', 302)
+
+    return render('users/delete_profile.html',
+                  brands=brands, csrf_token=csrf_token)
+
+
+@app.route('/brand/<int:brand_id>')
+def cars_by_brand(brand_id):
+    """
+    Brand page
+
+    :param brand_id: int
+    :return:
+    """
+    cars = [car.serialize for car in get_items_by_category(brand_id, 9)]
+    return render('catalog/brand.html', brands=brands, cars=cars)
+
+
+@app.route('/car/<int:item_id>')
+def show_car(item_id):
+    car = get_item_by_id(item_id)
+    return render('catalog/car.html', brands=brands, car=car.serialize)
+
+
+@app.route('/new/car', methods=['GET', 'POST'])
+def new_car():
+    """
+    Create a new car
+
+    :return mix:
+    """
+
+    # check if user is logged in
+    if not session.get('uid'):
+        return redirect('/login', 302)
+
+    # POST request
+    if request.method == 'POST' and request.form['csrf_token'] == csrf_token:
+
+        # Get and clean data
+        try:
+            title = clean(request.form.get('title'))
+            model = clean(request.form.get('model'))
+            description = clean(request.form.get('description'))
+            brand = clean(request.form.get('brand'))
+            price = clean(request.form.get('price'))
+            author = session.get('uid')
+        except TypeError:
+            flash('fields can\'t be empty', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+
+        # check data
+        if len(title) < 5:
+            flash('too short title, minimum 5 characters', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+        if len(model) < 2:
+            flash('too short model, minimum 2 characters', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+        if len(description) < 5:
+            flash('too short description, min 5 symbols', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+
+        # convert data to integer
+        try:
+            brand = int(brand)
+        except TypeError:
+            flash('invalid category type', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+        try:
+            price = int(price)
+        except TabError:
+            flash('invalid price type', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+
+        # if brand les then 1 send error
+        if brand < 1:
+            flash('brand not found', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+
+        # Save data
+        car = create_item(title, description, model, brand, author, price)
+
+        return redirect('/edit/car/%s' % car.id)
+
+    return render('catalog/new_car.html', brands=brands, csrf=csrf_token)
+
+
+@app.route('/edit/car/<int:item_id>', methods=['GET', 'POST'])
+def edit_car(item_id):
+    """
+    Edit item
+
+    :param item_id:
+    :return mix:
+    """
+
+    # Check user login
+    if not session.get('uid'):
+        return redirect('/login', 302)
+
+    # get user
+    user = get_user_by_id(session['uid'])
+
+    # Get car
+    car = get_item_by_id(item_id)
+
+    # Check the user is the owner
+    if int(session['uid']) != int(car.author):
+        flash('You don\'t have permission to edit it.', 'error')
+        return redirect('/profile', 302)
+
+    # Get token
+    token = user.generate_auth_token(3600)
+
+    if request.method == 'POST' and request.form['csrf_token'] == csrf_token:
+        _car = dict()
+
+        # cleaning data
+        try:
+            _car['description'] = clean(request.form['description'])
+            _car['title'] = clean(request.form['title'])
+            _car['model'] = clean(request.form['model'])
+            _car['price'] = clean(request.form['price'])
+            _car['brand'] = clean(request.form['brand'])
+            _car['author'] = session['uid']
+        except TypeError:
+            flash('fields can\'t be empty', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+
+        # update car, create success message and redirect user
+        item = update_item(_car, item_id)
+        flash('Record "%s" was successfully updated' % item.title, 'success')
+        return redirect('/profile', 302)
+
+    return render('catalog/edit_car.html',
+                  brands=brands,
+                  car=car.serialize,
+                  token=token,
+                  user=user.serialize,
+                  csrf_token=csrf_token)
+
+
+@app.route('/delete/car/<int:item_id>', methods=['GET', 'POST'])
+def delete_car(item_id):
+
+    # Check user login
+    if not session.get('uid'):
+        return redirect('/login', 302)
+
+    # Get car
+    car = get_item_by_id(item_id)
+
+    # check if the user is the owner
+    if int(car.author) != int(session['uid']):
+        # crate a error message and redirect user
+        flash('You don\'t have permission to remove this object', 'error')
+        return redirect('/profile', 302)
+
+    if request.method == 'POST':
+
+        # get images
+        images = get_images_by_item_id(item_id)
+
+        # get title
+        title = car.title
+
+        # remove images files
+        for image in images:
+            # get absolute path to image
+            path = ''.join([BASE_DIR, image.url])
+            # if file exist remove the image file
+            if os.path.isfile(path):
+                os.unlink(path)
+
+        # remove images from from database
+        remove_images_by_item_id(item_id)
+
+        # remove data of car from database
+        delete_item(item_id)
+
+        # crate a success message and redirect user
+        flash('Car: "%s" was removed' % title, 'success')
+        return redirect('/profile', 302)
+
+    return render('catalog/delete_car.html',
+                  brands=brands, car=car.serialize, csrf_token=csrf_token)
+
+
 # TODO: Sign in with provider
-@app.route('/oauth/<provider>', methods=['POST'])
-def login(provider):
+@app.route('/api/oauth/<provider>', methods=['POST'])
+def oauth(provider):
     # STEP 1 - Parse the auth code
     code = request.data
+    print provider
 
     if provider == 'google':
         # STEP 2 - Exchange for a token
@@ -99,18 +444,11 @@ def login(provider):
                                password=get_unique_str(8))
 
         g.user = user
-        # Make token
-        token = g.user.generate_auth_token()
 
+        session['uid'] = user.id
+        session['provider'] = 'google'
         # Send back token to the client
-        return jsonify({'token': token.decode('ascii'),
-                        'uid': g.user.id,
-                        'first_name': g.user.first_name,
-                        'last_name': g.user.last_name,
-                        'email': g.user.email,
-                        'picture': g.user.picture,
-                        'status': g.user.status,
-                        'full_name': g.user.get_full_name}), 200
+        return redirect('profile', code=302)
 
     elif provider == 'facebook':
 
@@ -132,11 +470,11 @@ def login(provider):
         h = Http()
         result = h.request(url, 'GET')[1]
         data = loads(result)
-        name = data['name'].split(' ')
+        name = findall(r'[a-zA-Z]+', data['name'])
 
         user_data = dict()
         user_data['provider'] = 'facebook'
-        user_data['username'] = data.get('name')
+        user_data['username'] = ''.join(name)
         user_data['first_name'] = name[0]
         user_data['last_name'] = name[1]
         user_data['email'] = data.get('email')
@@ -148,7 +486,6 @@ def login(provider):
         result = h.request(url, 'GET')[1]
         data = loads(result)
         user_data['picture'] = data['data']['url']
-        # login_session['picture'] = data["data"]["url"]
 
         # see if user exists
         user_info = get_user_by_email(user_data['email'])
@@ -162,18 +499,24 @@ def login(provider):
                                     picture=user_data['picture'])
 
         g.user = user_info
-        token = g.user.generate_auth_token()
-        return jsonify({'token': token.decode('ascii'),
-                        'uid': g.user.id,
-                        'first_name': g.user.first_name,
-                        'last_name': g.user.last_name,
-                        'email': g.user.email,
-                        'picture': g.user.picture,
-                        'status': g.user.status,
-                        'full_name': g.user.get_full_name}), 200
+        session['uid'] = user_info.id
+        session['provider'] = 'facebook'
+        return redirect('/profile', code=302)
 
     else:
-        return jsonify({'error': 'Unknown provider'}), 200
+        title = 'Sign in'
+        flash('Unknown provider', category='error')
+        return render('/users/login.html', brands=brands, title=title)
+
+
+@app.route('/logout')
+def logout():
+    if session.get('uid') is not None:
+        del session['uid']
+    if session.get('provider') is not None:
+        del session['provider']
+
+    return redirect('/', 302)
 
 
 # TODO: All items
@@ -187,12 +530,6 @@ def all_items():
     items = get_items(limit=9)
     json = [item.serialize for item in items]
     return jsonify(json)
-
-
-@app.route('/')
-def home_page():
-    cats = [item.serialize for item in get_categories()]
-    return render('default.html', brands=cats)
 
 
 # TODO: Get categories
@@ -316,7 +653,7 @@ def new_user():
 
 # TODO: Get a profile info by uid
 @app.route('/api/profile/<int:uid>')
-def profile(uid):
+def show_profile(uid):
     """
     Return serializable users data
 
@@ -339,6 +676,17 @@ def get_user_items():
     return jsonify(items), 200
 
 
+@app.route('/api/car/<int:car_id>')
+def get_user_item(car_id):
+    """
+    Return items by user id
+
+    :return string: JSON
+    """
+    car = get_item_by_id(car_id)
+    return jsonify(car.serialize), 200
+
+
 # TODO: Edit user photo
 @app.route('/api/profile/edit/photo/<int:uid>', methods=['POST'])
 @auth.login_required
@@ -349,10 +697,9 @@ def edit_photo(uid):
     :param uid:
     :return string: JSON
     """
-
     # check the user is the owner
-    user_profile = get_user_by_id(uid)
-    if user_profile.id != g.user.id:
+    user_prof = get_user_by_id(uid)
+    if user_prof.id != g.user.id:
         return jsonify({'error': 'permission denied'}), 403
 
     # check if the post request has the file part
@@ -639,7 +986,7 @@ def item_page(item_id):
     return jsonify(item.serialize), 200
 
 
-
 if __name__ == '__main__':
+    app.secret_key = 'super_secret_key'
     app.debug = True
     app.run(host='0.0.0.0')

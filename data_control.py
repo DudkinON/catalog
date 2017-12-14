@@ -8,6 +8,13 @@ from settings import *
 
 
 def allowed_file(filename, extensions):
+    """
+    Check file is image
+
+    :param filename: string
+    :param extensions: list
+    :return bool:
+    """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in extensions
 

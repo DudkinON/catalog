@@ -16,7 +16,8 @@ Base = declarative_base()  # initialisation the database
 secret_key = get_unique_str(32)  # create secret_key
 
 # create session
-engine = create_engine('sqlite:///catalog.db')
+engine = create_engine('sqlite:///catalog.db',
+                       connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -425,7 +426,7 @@ def get_items_by_category(category_id, limit, offset=None):
     :return object:
     """
     return session.query(Catalog).filter_by(
-        category=category_id).offset(offset).limit(limit)
+        category=category_id).offset(offset).limit(limit) or []
 
 
 def get_item_by_id(item_id):
@@ -444,7 +445,7 @@ def update_item(item, item_id):
 
     :param item:
     :param item_id:
-    :return void:
+    :return object:
     """
     current_item = session.query(Catalog).filter_by(id=item_id).first()
     current_item.title = item['title']

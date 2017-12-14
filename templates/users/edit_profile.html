@@ -1,0 +1,56 @@
+{% extends 'default.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row" ng-controller="PictureController as PictureController">
+  <div class="col-sm-6 col-lg-3">
+    <div class="user-image-container" ng-hide="PictureController.addedPhoto">
+      <img data-ng-src="{a PictureController.user.picture a}" ng-show="!item._file"
+           alt="{{ user.first_name }} {{ user.last_name }}" class="rounded-circle user-image">
+      <input type="file" class="upload-img" nv-file-select=""
+             data-uploader="PictureController.uploader">
+    </div>
+    <div ng-show="PictureController.addedPhoto"
+         ng-repeat="item in PictureController.uploader.queue">
+      <div ng-thumb="{ file: item._file, width: 130, height: 130 }"></div>
+    </div>
+    <div class="profile-name">
+      <div class="h5 w-100 mt-3">
+        <span>{{ user.first_name }} </span>
+        <span>{{ user.last_name }}</span>
+      </div>
+    </div>
+    <input type="hidden" value="{{ user.id }}" id="uid">
+    <input type="hidden" value="{{ token }}" id="token">
+    <input type="hidden" value="{{ user.picture }}" id="user-picture">
+  </div>
+  <div class="col-sm-6 col-lg-9">
+    <h4 class="card-title">
+      <span class="float-right">
+        <a href="{{ url_for('remove_profile') }}" class="red-link">
+          <i class="fa fa-trash" aria-hidden="true"></i>
+        </a>
+      </span>
+      <span>Profile</span>
+    </h4>
+    {% include 'flash.html' %}
+
+    <div class="user-data-container">
+      <form action="{{ url_for('edit_user_profile') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="text" class="empty-input" placeholder="first name"
+               name="first_name" value="{{ user.first_name }}">
+        <input type="text" class="empty-input" placeholder="last name"
+               name="last_name" value="{{ user.last_name }}">
+        <input type="email" class="empty-input" placeholder="email"
+               name="email" value="{{ user.email }}">
+        <input type="text" class="empty-input" placeholder="username"
+               name="username" value="{{ user.username }}">
+        <button class="mdl-button mdl-js-button mdl-js-ripple-effect"
+                type="submit">save</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

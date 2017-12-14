@@ -21,8 +21,7 @@
             <div class="dropdown-menu"
                  aria-labelledby="navbarDropdown">
               {% for item in brands %}
-              <a class="dropdown-item" href="/brand/{{ item.id }}"
-                 ng-repeat="item in menu">{{ item.name }}</a>
+              <a class="dropdown-item" href="/brand/{{ item.id }}">{{ item.name }}</a>
               {% endfor %}
             </div>
           </li>
@@ -41,27 +40,24 @@
           </div>
         </form>
         <ul class="navbar-nav">
+          {% if not session.uid %}
           <li class="nav-item">
-            <a class="nav-link" href="#">contacts</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">about</a>
-          </li>
-          <li class="nav-item" ng-show="user.info().size < 1">
-            <a class="nav-link icon-top" data-ng-href="/login">
+            <a class="nav-link text-center" href="{{ url_for('sign_in') }}">
               <i class="fa fa-sign-in" aria-hidden="true"></i>
             </a>
           </li>
-          <li class="nav-item" ng-show="user.info().size > 0">
-            <a class="nav-link icon-top" data-ng-href="/profile">
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link text-center" href="{{ url_for('user_profile') }}">
               <i class="fa fa-user" aria-hidden="true"></i>
             </a>
           </li>
-          <li class="nav-item" ng-show="user.info().size > 0">
-            <a class="nav-link icon-top" data-ng-href="/logout">
+          <li class="nav-item">
+            <a class="nav-link text-center" href="{{ url_for('logout') }}">
               <i class="fa fa-sign-out" aria-hidden="true"></i>
             </a>
           </li>
+          {% endif %}
         </ul>
       </div>
     </nav>

@@ -1,0 +1,64 @@
+{% extends 'default.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-sm-6 col-lg-3">
+    <div class="user-image-container">
+      <img src="{{ user.picture }}" ng-show="!item._file"
+           alt="{{ user.first_name }} {{ user.last_name }}" class="rounded-circle user-image">
+    </div>
+    <div class="profile-name">
+      <span class="float-right">
+        <a href="{{ url_for('edit_user_profile') }}">
+          <i class="fa fa-cog" aria-hidden="true"></i>
+        </a>
+      </span>
+      <div class="h5 w-100 mt-3 mb-5">{{ user.first_name }} {{ user.last_name }}</div>
+
+      <a href="{{ url_for('new_car') }}" class="green-link mdl-button mdl-js-button">
+          add a new car
+      </a>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-9">
+    <h4 class="card-title">Profile</h4>
+    {% include 'flash.html' %}
+    <div class="my-items">
+      <h4 class="h4 mb-3">My cars</h4>
+
+      {% for car in cars %}
+      <div class="h6 mb-2">
+        <div class="float-right">
+          <span class="mr-2">
+            <a href="{{ url_for('edit_car', item_id=car.id) }}">
+              <i class="fa fa-cogs" aria-hidden="true"></i>
+            </a>
+          </span>
+          <span>
+            <a href="{{ url_for('delete_car', item_id=car.id) }}" class="red-link">
+              <i class="fa fa-trash" aria-hidden="true"></i>
+            </a>
+          </span>
+        </div>
+        <span><a href="{{ url_for('edit_car', item_id=car.id) }}">{{ car.title }}</a></span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- TODO: Add category -->
+    <div class="add-cat" ng-show="ProfileController.admin">
+      <div data-id="category" data-type="text" data-labeltext="add category"
+           data-errortext="write category" data-model="category"
+           class="d-inline" field></div>
+      <div class="d-inline">
+        <button type="button"
+                class="mdl-button mdl-js-button mdl-js-ripple-effect"
+                data-ng-click="ProfileController.addCategory()">add
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

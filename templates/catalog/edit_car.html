@@ -1,0 +1,84 @@
+{% extends 'default.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row" ng-controller="ImageController as ImageController">
+  <div class="col-sm-6 col-lg-3">
+    <div class="user-image-container">
+      <img src="{{ user.picture }}" ng-show="!item._file"
+           alt="{{ user.first_name }} {{ user.last_name }}"
+           class="rounded-circle user-image">
+    </div>
+    <div class="h5 w-100 mt-3">{{ user.first_name }} {{ user.last_name }}</div>
+    <input type="hidden" value="{{ car.id }}" id="car-id">
+    <input type="hidden" value="{{ user.id }}" id="uid">
+    <input type="hidden" value="{{ token }}" id="token">
+  </div>
+  <div class="col-sm-6 col-lg-9">
+    <h4 class="card-title">Edit car</h4>
+    {% include 'flash.html' %}
+
+    <!-- TODO: Add new car in catalog -->
+    <div class="add-car">
+      <div class="form-group" >
+        <input type="file" class="" nv-file-select=""
+               uploader="ImageController.carUploader" multiple>
+      </div>
+      <form id="add-car" method="post" action="{{ url_for('edit_car', item_id=car.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="form-group">
+          <input class="form-control" type="text" value="{{ car.brand.id }}"
+                 name="brand" placeholder="{{ car.brand.name }}" readonly>
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-control" id="title" name="title"
+                 placeholder="title" value="{{ car.title }}">
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-control" id="model" name="model"
+                 placeholder="model" value="{{ car.model }}">
+        </div>
+        <div class="form-group">
+        <textarea class="form-control" id="description" rows="4" name="description"
+                  placeholder="description">{{ car.description }}</textarea>
+        </div>
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-addon">$</span>
+            <input type="number" class="form-control" value="{{ car.price }}"
+                   aria-label="Amount (to the nearest dollar)" name="price">
+            <span class="input-group-addon">.00</span>
+          </div>
+        </div>
+
+        <div class="mb-5 pt-3">
+          <button type="submit" class="mdl-button mdl-js-button mdl-js-ripple-effect">
+            save
+          </button>
+        </div>
+      </form>
+      <div class="car-images-container">
+        <div ng-show="ImageController.car.images.length" class="ng-scope">
+          <div class="img-wrap">
+            <img data-ng-src="{a ImageController.car.images[0].url a}" id="main-image">
+          </div>
+          <div class="img-thumbnails row">
+            <div class="col-2 car-thumbnail"
+                 ng-repeat="image in ImageController.car.images">
+              <img data-ng-src="{a image.url a}" alt="{a image.id a}"
+                   data-ng-click="ImageController.chooseImg(image)"
+                   ng-if="ImageController.currentImg.url !== image.url"
+                   class="rounded border inactive-img pointer">
+              <img data-ng-src="{a image.url a}" alt="{a image.id a}"
+                   data-ng-click="ImageController.chooseImg(image)"
+                   ng-if="ImageController.currentImg.url === image.url"
+                   class="rounded border active-img pointer">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

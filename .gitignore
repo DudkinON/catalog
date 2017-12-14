@@ -1,0 +1,4 @@
+.idea
+.DS_Store
+/client_secrets.json
+/facebook.json
