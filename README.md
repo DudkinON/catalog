@@ -77,10 +77,6 @@ On file **facebook.json** do not change or delete **access_token_url**,
 > **Important:** In Google api libraries turn on: **Gmail API** and **Google+ API**. 
 App use both.
 
-
-## Demo
-Demo you can see it here: [www.carcat.tk](http://www.carcat.tk)
-
 ## Used:
 
 * [Python 2.7.14](https://www.python.org/downloads/release/python-2714/)
