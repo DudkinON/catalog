@@ -1,4 +1,4 @@
-# Carcat - items catalog 
+# Items catalog 
 
 Basis for creating larger projects. This project provides 
 main the users functionality to sign in with oauth providers, and manage content.
