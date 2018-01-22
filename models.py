@@ -11,13 +11,17 @@ from itsdangerous import BadSignature, SignatureExpired
 from data_control import get_unique_str
 from settings import *
 
-
 Base = declarative_base()  # initialisation the database
 secret_key = get_unique_str(32)  # create secret_key
 
+# prepare engine
+egg = 'postgresql://%s:%s@%s/%s' % (DB['user'],
+                                    DB['password'],
+                                    DB['host'],
+                                    DB['database'])
+
 # create session
-engine = create_engine('sqlite:///catalog.db',
-                       connect_args={'check_same_thread': False})
+engine = create_engine(egg)
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
