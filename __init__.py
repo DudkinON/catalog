@@ -41,6 +41,7 @@ def login_required(f):
     :param f:
     :return:
     """
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'uid' in session:
@@ -48,6 +49,7 @@ def login_required(f):
         else:
             flash('You are not allowed to access there', 'error')
             return redirect('/login', 302)
+
     return decorated_function
 
 
@@ -280,12 +282,24 @@ def new_car():
             flash('too short title, minimum 5 characters', 'error')
             return render('catalog/new_car.html',
                           brands=brands, csrf=csrf_token)
+        if len(title) > 250:
+            flash('too long title, maximum 250 characters', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
         if len(model) < 2:
             flash('too short model, minimum 2 characters', 'error')
             return render('catalog/new_car.html',
                           brands=brands, csrf=csrf_token)
+        if len(model) > 100:
+            flash('too long model, maximum 100 characters', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
         if len(description) < 5:
             flash('too short description, min 5 symbols', 'error')
+            return render('catalog/new_car.html',
+                          brands=brands, csrf=csrf_token)
+        if len(description) > 250:
+            flash('too long description, maximum 250 symbols', 'error')
             return render('catalog/new_car.html',
                           brands=brands, csrf=csrf_token)
 
@@ -437,8 +451,9 @@ def oauth(provider):
         # STEP 2 - Exchange for a token
         try:
             # Upgrade the authorization code into a credentials object
-            oauth_flow = flow_from_clientsecrets('client_secrets.json',
-                                                 scope='')
+            oauth_flow = flow_from_clientsecrets(
+                settings.BASE_DIR + '/client_secrets.json',
+                scope='')
             oauth_flow.redirect_uri = 'postmessage'
             credentials = oauth_flow.step2_exchange(code)
         except FlowExchangeError:
@@ -760,7 +775,6 @@ def get_user_item(car_id):
 
 # TODO: Edit user photo
 @app.route('/api/profile/edit/photo/<int:uid>', methods=['POST'])
-@auth.login_required
 def edit_photo(uid):
     """
     Update user's photo (avatar)
@@ -768,9 +782,10 @@ def edit_photo(uid):
     :param uid:
     :return string: JSON
     """
+
     # check the user is the owner
     user_prof = get_user_by_id(uid)
-    if user_prof.id != g.user.id:
+    if user_prof.id != session['uid']:
         return jsonify({'error': 'permission denied'}), 403
 
     # check if the post request has the file part
@@ -794,7 +809,7 @@ def edit_photo(uid):
         photo.save(abs_path)
 
         # update user data
-        user = update_user_photo(filename, g.user.id)
+        user = update_user_photo(filename, user_prof.id)
 
         return jsonify(user.serialize), 200
     else:
@@ -803,7 +818,6 @@ def edit_photo(uid):
 
 # TODO: Add items photos
 @app.route('/api/item/add/images/<int:uid>/<int:item_id>', methods=['POST'])
-@auth.login_required
 def add_item_images(uid, item_id):
     """
     Save item's images
@@ -826,7 +840,7 @@ def add_item_images(uid, item_id):
     user_profile = get_user_by_id(uid)
 
     # check the user is the owner of the account
-    if user_profile.id != g.user.id:
+    if user_profile.id != session['uid']:
         return jsonify({'error': 'permission denied'}), 403
 
     # get list of images
