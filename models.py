@@ -32,7 +32,7 @@ class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     username = Column(String(32), index=True)
-    picture = Column(String(250), default='/img/no-img.png')
+    picture = Column(String(250), default='/static/img/no-img.png')
     first_name = Column(String(25), default=None)
     last_name = Column(String(25), default=None)
     email = Column(String(40))
@@ -157,7 +157,7 @@ class Category(Base):
 class Catalog(Base):
     __tablename__ = 'catalog'
     id = Column(Integer, primary_key=True)
-    model = Column(String(30))
+    model = Column(String(100))
     title = Column(String(250))
     description = Column(String(250))
     category = Column(Integer, ForeignKey("category.id"), nullable=False)
