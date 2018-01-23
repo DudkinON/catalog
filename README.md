@@ -1,4 +1,4 @@
-# Carcat - items catalog 
+# Items catalog 
 
 Basis for creating larger projects. This project provides 
 main the users functionality to sign in with oauth providers, and manage content.
@@ -76,10 +76,6 @@ On file **facebook.json** do not change or delete **access_token_url**,
 
 > **Important:** In Google api libraries turn on: **Gmail API** and **Google+ API**. 
 App use both.
-
-
-## Demo
-Demo you can see it here: [www.carcat.tk](http://www.carcat.tk)
 
 ## Used:
 
